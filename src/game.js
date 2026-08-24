@@ -261,7 +261,9 @@ function advanceTurn(room) {
   room.turnNumber += 1;
   const p = activePlayer(room);
   logEvent(room, 'turn', `${p.name}'s turn.${p.connected ? '' : ' (disconnected — host can skip)'}`);
-  setAction(room, { kind: 'turn', playerId: p.id });
+  // Deliberately no setAction here. The turn change is already visible from
+  // turnIndex/turnNumber, and overwriting lastAction would destroy the roll
+  // event the clients animate from.
 }
 
 function skipTurn(room, reason = 'Host skipped the turn.') {
@@ -456,14 +458,15 @@ function viewFor(room, viewer) {
   let pending = null;
   if (room.pending) {
     const owner = findPlayer(room, room.pending.playerId);
-    const visible = isAdmin || room.pending.playerId === viewer.playerId;
     pending = {
       playerId: room.pending.playerId,
       playerName: owner ? owner.name : 'Player',
       landedOn: room.pending.landedOn,
       ladderTo: room.pending.ladderTo,
       isYours: room.pending.playerId === viewer.playerId,
-      question: visible ? room.pending.question : null,
+      // Shown to everyone: it gets read aloud on the call anyway, and the
+      // group following along is the point of the exercise.
+      question: room.pending.question,
     };
   }
 
