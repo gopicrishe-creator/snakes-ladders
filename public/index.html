@@ -32,7 +32,7 @@
       </div>
       <div class="field">
         <label class="eyebrow" for="in-name">Your name</label>
-        <input type="text" id="in-name" placeholder="Vinod" autocomplete="off" maxlength="18">
+        <input type="text" id="in-name" placeholder="Gopi" autocomplete="off" maxlength="18">
       </div>
       <button class="btn btn-primary" id="btn-join" style="width:100%">Join the game</button>
       <p class="join-help">Five players per room. If you get disconnected, come back to this page — you'll drop straight back onto your own token.</p>
@@ -63,7 +63,10 @@
           <div class="eyebrow" id="turn-label">Waiting for the host</div>
           <div class="name" id="turn-name">—</div>
         </div>
-        <div class="dice" id="dice" role="img" aria-label="Dice not rolled yet"></div>
+        <div class="dice-wrap">
+          <div class="dice" id="dice" role="img" aria-label="Dice not rolled yet"></div>
+          <div class="dice-cap" id="dice-cap">no rolls yet</div>
+        </div>
       </div>
       <div class="roll-zone">
         <button class="btn btn-primary btn-roll" id="btn-roll" disabled>Roll dice</button>

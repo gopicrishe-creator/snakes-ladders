@@ -19,6 +19,8 @@ let latest = null;        // last state received
 let seenSeq = 0;
 let queue = Promise.resolve();
 let modalKey = null;      // prevents the modal from re-animating on every state
+let lastDice = null;      // the number showing on the dice: last roll by anyone
+let lastDiceBy = null;    // who rolled it
 
 /* --------------------------------------------------------------- connection */
 
@@ -94,6 +96,16 @@ socket.on('state', (state) => {
   const isNew = action && action.seq > seenSeq;
   if (isNew) seenSeq = action.seq;
 
+  // The dice keeps showing the last number rolled by anyone until the next
+  // roll. Read on every state, not just new ones, so a refresh restores it.
+  if (action && action.kind === 'roll') {
+    lastDice = action.dice;
+    lastDiceBy = action.playerId;
+  } else if (action && (action.kind === 'start' || action.kind === 'reset')) {
+    lastDice = null;
+    lastDiceBy = null;
+  }
+
   if (isNew && action.kind === 'roll' && typeof action.dice === 'number') {
     tumbleDice($('dice'), action.dice);
   }
@@ -133,11 +145,13 @@ function paint(state) {
     $('turn-name').textContent = active ? (isMyTurn ? 'Go ahead' : active.name) : '—';
   }
 
-  if (mine && mine.lastRoll && !$('dice').classList.contains('rolling')) {
-    renderDice($('dice'), active && active.lastRoll ? active.lastRoll : mine.lastRoll);
-  } else if (!$('dice').innerHTML) {
-    renderDice($('dice'), null);
+  if (!$('dice').classList.contains('rolling')) {
+    renderDice($('dice'), lastDice);
   }
+  const roller = lastDiceBy && state.players.find((p) => p.id === lastDiceBy);
+  $('dice-cap').textContent = roller
+    ? (roller.isYou ? 'you rolled' : `${roller.name} rolled`)
+    : 'no rolls yet';
 
   // Roll button + the one line explaining why it is off
   const openQuestion = state.pending;
@@ -247,11 +261,11 @@ function renderModal(state) {
     host.innerHTML = `
       <div class="scrim">
         <div class="modal watch">
-          <div class="banner">&#129884; Ladder<span class="route">${pending.landedOn} &rarr; ${pending.ladderTo}</span></div>
+          <div class="banner">&#129884; ${escapeHtml(pending.playerName)}'s ladder<span class="route">${pending.landedOn} &rarr; ${pending.ladderTo}</span></div>
           <div class="body">
-            <div class="eyebrow">Over to</div>
-            <div class="qtext">${escapeHtml(pending.playerName)}</div>
-            <p class="instruction">They have a question on screen and are answering it on the call. The board unlocks when they're done.</p>
+            <div class="eyebrow">Their question${pending.question && pending.question.set ? ` &middot; set ${pending.question.set}` : ''}</div>
+            <div class="qtext">${escapeHtml(pending.question ? pending.question.text : '')}</div>
+            <p class="instruction">${escapeHtml(pending.playerName)} is answering this on the call. Listen in &mdash; the board unlocks when they're done.</p>
           </div>
         </div>
       </div>`;

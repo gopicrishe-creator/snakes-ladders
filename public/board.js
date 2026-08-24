@@ -51,8 +51,11 @@ function svg(tag, attrs) {
   return node;
 }
 
-/** A snake body: one wobbling cubic curve, a head, and eyes. */
-function drawSnake(layer, head, tail) {
+/**
+ * A snake: a gradient ribbon with a lighter belly stripe and a dashed
+ * highlight that flows head-to-tail, so the body reads as moving.
+ */
+function drawSnake(layer, defs, head, tail) {
   const a = centre(Number(head));
   const b = centre(Number(tail));
   const dx = b.x - a.x;
@@ -60,55 +63,88 @@ function drawSnake(layer, head, tail) {
   const len = Math.hypot(dx, dy) || 1;
   const nx = -dy / len;
   const ny = dx / len;
-  const bend = Math.min(14, 4 + len * 0.16);
+  const bend = Math.min(15, 4.5 + len * 0.17);
 
-  const c1 = { x: a.x + dx * 0.3 + nx * bend, y: a.y + dy * 0.3 + ny * bend };
-  const c2 = { x: a.x + dx * 0.7 - nx * bend, y: a.y + dy * 0.7 - ny * bend };
+  const c1 = { x: a.x + dx * 0.28 + nx * bend, y: a.y + dy * 0.28 + ny * bend };
+  const c2 = { x: a.x + dx * 0.72 - nx * bend, y: a.y + dy * 0.72 - ny * bend };
   const d = `M ${a.x} ${a.y} C ${c1.x} ${c1.y} ${c2.x} ${c2.y} ${b.x} ${b.y}`;
 
-  layer.appendChild(svg('path', {
-    d, fill: 'none', stroke: '#8B2A1B', 'stroke-width': 3.1,
-    'stroke-linecap': 'round', opacity: '0.55',
-  }));
-  layer.appendChild(svg('path', {
-    d, fill: 'none', stroke: 'var(--coral)', 'stroke-width': 2.1,
-    'stroke-linecap': 'round', opacity: '0.95',
-  }));
-  layer.appendChild(svg('path', {
-    d, fill: 'none', stroke: '#F7C9BE', 'stroke-width': 0.55,
-    'stroke-dasharray': '1.2 2.4', 'stroke-linecap': 'round', opacity: '0.7',
-  }));
+  const gid = `sg-${head}`;
+  const grad = svg('linearGradient', {
+    id: gid, gradientUnits: 'userSpaceOnUse',
+    x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+  });
+  grad.appendChild(svg('stop', { offset: '0%', 'stop-color': '#FF5F6D' }));
+  grad.appendChild(svg('stop', { offset: '55%', 'stop-color': '#F0518F' }));
+  grad.appendChild(svg('stop', { offset: '100%', 'stop-color': '#B341C8' }));
+  defs.appendChild(grad);
 
-  // Head, oriented along the first control point.
+  // Soft halo, then the body, then a belly stripe.
+  layer.appendChild(svg('path', {
+    d, fill: 'none', stroke: `url(#${gid})`, 'stroke-width': 4.6,
+    'stroke-linecap': 'round', opacity: '0.22', class: 'snake-halo',
+  }));
+  layer.appendChild(svg('path', {
+    d, fill: 'none', stroke: `url(#${gid})`, 'stroke-width': 2.3,
+    'stroke-linecap': 'round',
+  }));
+  layer.appendChild(svg('path', {
+    d, fill: 'none', stroke: 'rgba(255,255,255,0.34)', 'stroke-width': 0.7,
+    'stroke-linecap': 'round',
+  }));
+  // The flowing highlight. Duration varies so the snakes never march in step.
+  const flow = svg('path', {
+    d, fill: 'none', stroke: 'rgba(255,255,255,0.85)', 'stroke-width': 0.9,
+    'stroke-linecap': 'round', 'stroke-dasharray': '1.4 9', class: 'snake-flow',
+  });
+  flow.style.animationDuration = `${(2.6 + (Number(head) % 7) * 0.45).toFixed(2)}s`;
+  layer.appendChild(flow);
+
   const ang = Math.atan2(c1.y - a.y, c1.x - a.x);
-  layer.appendChild(svg('circle', { cx: a.x, cy: a.y, r: 2.1, fill: 'var(--coral)' }));
-  const eye = 0.85;
-  layer.appendChild(svg('circle', {
-    cx: a.x + Math.cos(ang + 1.1) * eye, cy: a.y + Math.sin(ang + 1.1) * eye,
-    r: 0.42, fill: '#2A0E08',
-  }));
-  layer.appendChild(svg('circle', {
-    cx: a.x + Math.cos(ang - 1.1) * eye, cy: a.y + Math.sin(ang - 1.1) * eye,
-    r: 0.42, fill: '#2A0E08',
-  }));
+  const g = svg('g', { class: 'snake-head-g' });
+  g.appendChild(svg('circle', { cx: a.x, cy: a.y, r: 2.35, fill: '#FF5F6D' }));
+  g.appendChild(svg('circle', { cx: a.x, cy: a.y, r: 2.35, fill: 'none', stroke: 'rgba(255,255,255,0.5)', 'stroke-width': 0.35 }));
+  const eye = 0.95;
+  [1.05, -1.05].forEach((o) => {
+    g.appendChild(svg('circle', {
+      cx: a.x + Math.cos(ang + o) * eye, cy: a.y + Math.sin(ang + o) * eye,
+      r: 0.46, fill: '#1A0710',
+    }));
+  });
+  layer.appendChild(g);
 }
 
-/** A ladder: two rails plus evenly spaced rungs. */
-function drawLadder(layer, bottom, top) {
+/** A ladder: glowing glass rails with a light pulse travelling upward. */
+function drawLadder(layer, defs, bottom, top) {
   const a = centre(Number(bottom));
   const b = centre(Number(top));
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const len = Math.hypot(dx, dy) || 1;
-  const nx = (-dy / len) * 1.5;
-  const ny = (dx / len) * 1.5;
+  const nx = (-dy / len) * 1.55;
+  const ny = (dx / len) * 1.55;
 
-  const rail = (sx, sy) => layer.appendChild(svg('line', {
-    x1: a.x + sx, y1: a.y + sy, x2: b.x + sx, y2: b.y + sy,
-    stroke: 'var(--jade)', 'stroke-width': 0.85, 'stroke-linecap': 'round', opacity: '0.95',
-  }));
-  rail(nx, ny);
-  rail(-nx, -ny);
+  const gid = `lg-${bottom}`;
+  const grad = svg('linearGradient', {
+    id: gid, gradientUnits: 'userSpaceOnUse', x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+  });
+  grad.appendChild(svg('stop', { offset: '0%', 'stop-color': '#38F5C8' }));
+  grad.appendChild(svg('stop', { offset: '100%', 'stop-color': '#4FC3FF' }));
+  defs.appendChild(grad);
+
+  const rail = (sx, sy, cls, w, op) => {
+    const l = svg('line', {
+      x1: a.x + sx, y1: a.y + sy, x2: b.x + sx, y2: b.y + sy,
+      stroke: `url(#${gid})`, 'stroke-width': w, 'stroke-linecap': 'round', opacity: op,
+    });
+    if (cls) l.setAttribute('class', cls);
+    layer.appendChild(l);
+    return l;
+  };
+  rail(nx, ny, 'ladder-halo', 2.6, '0.2');
+  rail(-nx, -ny, 'ladder-halo', 2.6, '0.2');
+  rail(nx, ny, null, 0.85, '1');
+  rail(-nx, -ny, null, 0.85, '1');
 
   const rungs = Math.max(3, Math.round(len / 4.4));
   for (let i = 0; i <= rungs; i += 1) {
@@ -117,9 +153,18 @@ function drawLadder(layer, bottom, top) {
     const py = a.y + dy * t;
     layer.appendChild(svg('line', {
       x1: px + nx, y1: py + ny, x2: px - nx, y2: py - ny,
-      stroke: '#8FE0CB', 'stroke-width': 0.6, 'stroke-linecap': 'round', opacity: '0.8',
+      stroke: 'rgba(190,255,240,0.75)', 'stroke-width': 0.62, 'stroke-linecap': 'round',
     }));
   }
+
+  // A short bright segment that climbs the ladder on a loop.
+  const pulse = svg('line', {
+    x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+    stroke: 'rgba(255,255,255,0.9)', 'stroke-width': 1.5, 'stroke-linecap': 'round',
+    'stroke-dasharray': `4 ${Math.round(len)}`, class: 'ladder-pulse',
+  });
+  pulse.style.animationDuration = `${(2.8 + (Number(bottom) % 5) * 0.5).toFixed(2)}s`;
+  layer.appendChild(pulse);
 }
 
 class Board {
@@ -163,8 +208,10 @@ class Board {
       class: 'overlay', viewBox: '0 0 100 100', preserveAspectRatio: 'none',
       'aria-hidden': 'true',
     });
-    for (const [b, t] of Object.entries(LADDERS)) drawLadder(overlay, b, t);
-    for (const [h, t] of Object.entries(SNAKES)) drawSnake(overlay, h, t);
+    const defs = svg('defs', {});
+    overlay.appendChild(defs);
+    for (const [b, t] of Object.entries(LADDERS)) drawLadder(overlay, defs, b, t);
+    for (const [h, t] of Object.entries(SNAKES)) drawSnake(overlay, defs, h, t);
     this.root.appendChild(overlay);
 
     this.tokenLayer = el('div', 'tokens');
