@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Host dashboard — Snakes &amp; Ladders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="mark">&#9670;</span> Snakes &amp; Ladders <span class="sub">Host</span></div>
+  <div class="spacer"></div>
+  <span class="chip" id="chip-room" hidden>Room <strong id="chip-code">—</strong></span>
+  <span class="chip" id="chip-status" hidden><i class="dot"></i><strong id="chip-status-text">—</strong></span>
+  <span class="chip" id="chip-conn"><i class="dot off"></i>Connecting</span>
+</header>
+
+<!-- ------------------------------------------------------------- open screen -->
+<main class="join" id="screen-open">
+  <h1>Run the <em>room</em>.</h1>
+  <p class="lede">Create a room, share the code in your Google Meet chat, and watch every roll, ladder and question from here.</p>
+
+  <div class="panel">
+    <div class="panel-body">
+      <button class="btn btn-primary" id="btn-create" style="width:100%">Create a new room</button>
+      <p class="join-help">Already had a room open? Reconnect to it with its code.</p>
+      <div class="field">
+        <label class="eyebrow" for="in-code">Existing room code</label>
+        <input type="text" id="in-code" placeholder="SL-4821" autocomplete="off" spellcheck="false" maxlength="8">
+      </div>
+      <button class="btn" id="btn-attach" style="width:100%">Reconnect to room</button>
+    </div>
+  </div>
+</main>
+
+<!-- -------------------------------------------------------------- dashboard -->
+<main class="wrap" id="screen-dash" hidden>
+
+  <div class="panel" style="margin-bottom:18px">
+    <div class="panel-head">
+      <h2>Controls</h2>
+      <div class="spacer"></div>
+      <span class="eyebrow" id="join-link">Players join at <strong id="join-url">—</strong></span>
+    </div>
+    <div class="panel-body tight controls">
+      <button class="btn btn-primary" id="c-start">Start game</button>
+      <button class="btn" id="c-pause">Pause</button>
+      <button class="btn" id="c-resume">Resume</button>
+      <button class="btn" id="c-skip">Skip this turn</button>
+      <button class="btn" id="c-force">Mark answered</button>
+      <div class="spacer" style="flex:1"></div>
+      <button class="btn btn-danger" id="c-reset">Reset board</button>
+      <button class="btn btn-danger" id="c-end">End game</button>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="eyebrow">Status</div><div class="v small" id="s-status">—</div></div>
+      <div class="stat"><div class="eyebrow">Players in</div><div class="v" id="s-players">0</div></div>
+      <div class="stat"><div class="eyebrow">Turn</div><div class="v" id="s-turn">0</div></div>
+      <div class="stat"><div class="eyebrow">Now playing</div><div class="v small" id="s-current">—</div></div>
+      <div class="stat"><div class="eyebrow">Leader</div><div class="v small" id="s-leader">—</div></div>
+      <div class="stat"><div class="eyebrow">Elapsed</div><div class="v small mono" id="s-clock">0:00</div></div>
+    </div>
+  </div>
+
+  <div class="layout admin">
+    <section>
+      <div class="panel board-shell">
+        <div id="board"></div>
+        <div class="start-tray" id="tray">
+          <span class="eyebrow tray-label">Everyone is on the board</span>
+          <span class="tray-tokens"></span>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--jade)"></i> 6 ladders</span>
+          <span><i style="background:var(--coral)"></i> 11 snakes</span>
+          <span>Exact roll needed for 100</span>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-warnings" hidden>
+        <div class="panel-head"><h2>Needs your attention</h2></div>
+        <ul class="warnings" id="warnings"></ul>
+      </div>
+    </section>
+
+    <aside>
+      <div class="panel">
+        <div class="panel-head"><h2>Players</h2><div class="spacer"></div><span class="eyebrow" id="dice-line">—</span></div>
+        <div class="panel-body tight" style="overflow-x:auto">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>Player</th><th class="num">Pos</th><th class="num">Roll</th>
+                <th class="num">Ladders</th><th class="num">Snakes</th><th class="num">Qs</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="ptable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Open question</h2></div>
+        <div id="pending-box" class="empty">No question is open right now.</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Question history</h2><div class="spacer"></div><span class="eyebrow">Per player, this session</span></div>
+        <div id="qhistory"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Activity log</h2></div>
+        <ul class="log" id="log" style="max-height:420px"></ul>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/config.js"></script>
+<script src="/common.js"></script>
+<script src="/board.js"></script>
+<script src="/admin.js"></script>
+</body>
+</html>

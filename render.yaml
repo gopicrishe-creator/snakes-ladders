@@ -1,0 +1,17 @@
+# Render Blueprint — lets Render configure the service without any manual setup.
+# Free instances sleep after 15 minutes idle and wake on the next request
+# (about a minute). Fine for a scheduled team session.
+services:
+  - type: web
+    name: snakes-ladders
+    runtime: node
+    plan: free
+    # Closest free region to India. Change to oregon / ohio / virginia /
+    # frankfurt if your players are elsewhere — pick whatever is nearest them.
+    region: singapore
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: 22

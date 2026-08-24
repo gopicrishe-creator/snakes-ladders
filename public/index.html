@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snakes &amp; Ladders — join a game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="mark">&#9670;</span> Snakes &amp; Ladders <span class="sub">Team edition</span></div>
+  <div class="spacer"></div>
+  <span class="chip" id="chip-room" hidden>Room <strong id="chip-code">—</strong></span>
+  <span class="chip" id="chip-status" hidden><i class="dot"></i><strong id="chip-status-text">—</strong></span>
+  <span class="chip" id="chip-conn"><i class="dot off"></i>Connecting</span>
+</header>
+
+<!-- ------------------------------------------------------------ join screen -->
+<main class="join" id="screen-join">
+  <h1>Roll, climb, <em>talk</em>.</h1>
+  <p class="lede">Enter the room code your host shared. Keep your Google Meet open in another window — you answer your questions out loud there.</p>
+
+  <div class="panel">
+    <div class="panel-body">
+      <div class="field">
+        <label class="eyebrow" for="in-code">Room code</label>
+        <input type="text" id="in-code" placeholder="SL-4821" autocomplete="off" spellcheck="false" maxlength="8">
+      </div>
+      <div class="field">
+        <label class="eyebrow" for="in-name">Your name</label>
+        <input type="text" id="in-name" placeholder="Vinod" autocomplete="off" maxlength="18">
+      </div>
+      <button class="btn btn-primary" id="btn-join" style="width:100%">Join the game</button>
+      <p class="join-help">Five players per room. If you get disconnected, come back to this page — you'll drop straight back onto your own token.</p>
+    </div>
+  </div>
+</main>
+
+<!-- ------------------------------------------------------------- game screen -->
+<main class="wrap layout" id="screen-game" hidden>
+  <section class="panel board-shell">
+    <div id="board"></div>
+    <div class="start-tray" id="tray">
+      <span class="eyebrow tray-label">Everyone is on the board</span>
+      <span class="tray-tokens"></span>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--jade)"></i> Ladder &mdash; answer a question, then climb</span>
+      <span><i style="background:var(--coral)"></i> Snake &mdash; slide straight down</span>
+      <span>Land exactly on 100 to win</span>
+    </div>
+  </section>
+
+  <aside class="side">
+    <div class="panel">
+      <div class="turn-card">
+        <div class="swatch" id="turn-swatch"></div>
+        <div class="who">
+          <div class="eyebrow" id="turn-label">Waiting for the host</div>
+          <div class="name" id="turn-name">—</div>
+        </div>
+        <div class="dice" id="dice" role="img" aria-label="Dice not rolled yet"></div>
+      </div>
+      <div class="roll-zone">
+        <button class="btn btn-primary btn-roll" id="btn-roll" disabled>Roll dice</button>
+        <p class="roll-note" id="roll-note">The host hasn't started the game yet.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Players</h2><div class="spacer"></div><span class="eyebrow" id="count-label">0 / 5</span></div>
+      <ul class="roster" id="roster"></ul>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>What just happened</h2></div>
+      <ul class="log" id="log"></ul>
+    </div>
+  </aside>
+</main>
+
+<div id="modal-host"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/config.js"></script>
+<script src="/common.js"></script>
+<script src="/board.js"></script>
+<script src="/player.js"></script>
+</body>
+</html>
