@@ -18,6 +18,8 @@ let clockTimer = null;
 let elapsedBase = 0;
 let elapsedAt = 0;
 let openHistory = new Set();
+let lastDice = null;
+let lastDiceBy = null;
 
 /* --------------------------------------------------------------- connection */
 
@@ -35,6 +37,10 @@ socket.on('connect', () => {
 socket.on('disconnect', () => setConnChip('warn'));
 socket.on('connect_error', () => setConnChip('off'));
 socket.on('notice', ({ level, message }) => toast(message, level));
+
+// Legend counts come from the served board config so they cannot go stale.
+$('lg-ladders').textContent = `${Object.keys(CFG.ladders).length} ladders`;
+$('lg-snakes').textContent = `${Object.keys(CFG.snakes).length} snakes`;
 
 socket.on('joined', (info) => {
   remember('admin:code', info.code);
@@ -92,6 +98,9 @@ socket.on('state', (state) => {
   const isNew = action && action.seq > seenSeq;
   if (isNew) seenSeq = action.seq;
 
+  if (action && action.kind === 'roll') { lastDice = action.dice; lastDiceBy = action.playerId; }
+  else if (action && (action.kind === 'start' || action.kind === 'reset')) { lastDice = null; lastDiceBy = null; }
+
   if (isNew) {
     queue = queue
       .then(() => board.play(action, state.players))
@@ -126,7 +135,8 @@ function paint(state) {
   $('c-end').disabled = state.status === 'finished' || state.status === 'lobby';
   $('c-start').textContent = state.status === 'lobby' && state.turnNumber === 0 ? 'Start game' : 'Restart game';
 
-  $('dice-line').textContent = active && active.lastRoll ? `Last roll ${active.lastRoll} by ${active.name}` : 'No rolls yet';
+  const roller = lastDiceBy && state.players.find((p) => p.id === lastDiceBy);
+  $('dice-line').textContent = roller ? `Last roll ${lastDice} by ${roller.name}` : 'No rolls yet';
 
   // Player table
   const body = $('ptable');
