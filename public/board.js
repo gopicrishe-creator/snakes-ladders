@@ -10,6 +10,9 @@
  * from 1 to 100 is readable without tracing the numbers.
  */
 
+// Wrapped in an IIFE: classic scripts share one global scope, so top-level
+// declarations here would collide with the other files on the page.
+(function () {
 const CFG = window.SNL_CONFIG;
 const SNAKES = CFG.snakes;
 const LADDERS = CFG.ladders;
@@ -309,3 +312,4 @@ class Board {
 
 window.SNLBoard = Board;
 window.SNLCentre = centre;
+}());

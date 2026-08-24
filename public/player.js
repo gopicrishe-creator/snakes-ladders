@@ -1,6 +1,9 @@
 /* global window, document, io */
 'use strict';
 
+// Wrapped in an IIFE: classic scripts share one global scope, so top-level
+// declarations here would collide with the other files on the page.
+(function () {
 const { sessionId, remember, recall, toast, renderDice, tumbleDice, renderLog, STATUS_TEXT } = window.SNL;
 const CFG = window.SNL_CONFIG;
 
@@ -260,3 +263,4 @@ function escapeHtml(s) {
 }
 
 renderDice($('dice'), null);
+}());

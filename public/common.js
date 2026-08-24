@@ -2,6 +2,10 @@
 'use strict';
 
 /** A stable per-browser id so a refresh returns you to your own token. */
+
+// Wrapped in an IIFE: classic scripts share one global scope, so top-level
+// declarations here would collide with the other files on the page.
+(function () {
 function sessionId(scope) {
   const key = `snl:session:${scope}`;
   let value = null;
@@ -128,3 +132,4 @@ window.SNL = {
   sessionId, remember, recall, toast, renderDice, tumbleDice,
   clockTime, duration, renderLog, STATUS_TEXT,
 };
+}());

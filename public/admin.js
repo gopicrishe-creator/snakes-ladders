@@ -1,6 +1,9 @@
 /* global window, document, io */
 'use strict';
 
+// Wrapped in an IIFE: classic scripts share one global scope, so top-level
+// declarations here would collide with the other files on the page.
+(function () {
 const { sessionId, remember, recall, toast, renderLog, duration, clockTime, STATUS_TEXT } = window.SNL;
 const CFG = window.SNL_CONFIG;
 
@@ -219,3 +222,4 @@ function startClock(state) {
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
+}());
